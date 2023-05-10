@@ -10,12 +10,11 @@ from database.models.team import Team
 class Shift(Base, DictMixIn):
     __tablename__ = "shifts"
 
-    gameId = mapped_column(Integer, ForeignKey("games.id"))
+    gameId = mapped_column(Integer, ForeignKey("games.id"), primary_key=True)
     playerId = mapped_column(Integer, ForeignKey(
         "players.id"), primary_key=True)
-    shiftNumber = mapped_column(Integer, primary_key=True)
     teamId = mapped_column(Integer, ForeignKey("teams.id"))
-    shiftStart = mapped_column(Integer)
+    shiftStart = mapped_column(Integer, primary_key=True, index=True)
     shiftEnd = mapped_column(Integer)
 
     player = relationship("Player")
