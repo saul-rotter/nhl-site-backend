@@ -1,11 +1,15 @@
-import os
-import os.path
+import io
+import re
 import numpy as np
 import pandas as pd
-import re
-# from datetime import datetime, timedelta
 
-# dfs = pd.read_excel(file_name, sheetname=None)
+
+def returnMatchRegex(x):
+    match = re.search(r"\d+:\d+", str(x))
+    if match:
+        return match.group()
+    else:
+        return np.nan
 
 
 def convert_game_time(index, period, time):
@@ -17,7 +21,14 @@ def convert_game_time(index, period, time):
     return int(period) * 1200 - clock
 
 
-def read_a3z_game_data(df):
+def read_a3z_game_data(file_data):
+    df = pd.read_excel(io.BytesIO(file_data), dtype=str)
+    df['Time'] = df['Time'].apply(returnMatchRegex)
+    df["Period"] = df["Period"].apply(
+        lambda x: x if str(x).isdigit() else np.nan)
+    df["Period"] = df["Period"].fillna(method='ffill')
+    df = df[df['Period'].notna()]
+    df = df[df['Time'].notna()]
     df = df.drop(["Home", "Road", "Date"], axis=1)
     columns = list(df.drop("Period", axis=1).columns)
     df.dropna(how="all", inplace=True, subset=columns)
@@ -285,8 +296,8 @@ def clean_shots(shots):
     ]
 
 
-def get_clean_a3z_game_data(df, players_dict, teams_dict):
-    a3z_pbp = read_a3z_game_data(df)
+def get_clean_a3z_game_data(file_data, players_dict, teams_dict):
+    a3z_pbp = read_a3z_game_data(file_data)
     # Zone Entries
 
     # 0:3 in all tables as the recombination

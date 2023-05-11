@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, scoped_session
 from flask import g
 from greenlet import getcurrent as _get_ident
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.sqlite import insert
 import datetime
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./database/nhl.db"
@@ -69,3 +69,9 @@ class Database:
         # set up scoped_session registry
         # #add ability to access scoped session registry (implicitly)
         self.session = self.init_scoped_session()
+
+    @classmethod
+    def upsert(cls, table, values):
+        stmt = insert(table).values(values)
+        stmt = stmt.on_conflict_do_nothing()
+        return stmt
