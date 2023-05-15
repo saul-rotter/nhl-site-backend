@@ -20,10 +20,10 @@ class Game(Base, DictMixIn):
     awayCoach = mapped_column(String)
     awayScore = mapped_column(Integer)
 
-    awayTeam = relationship("Team", foreign_keys=[
+    homeTeam = relationship("Team", foreign_keys=[
                             homeTeamId], back_populates="games")
 
-    homeTeam = relationship("Team", foreign_keys=[
+    awayTeam = relationship("Team", foreign_keys=[
                             awayTeamId], back_populates="games")
 
     events = relationship("Event", back_populates='game')

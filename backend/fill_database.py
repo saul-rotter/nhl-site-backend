@@ -20,7 +20,7 @@ args = parser.parse_args()
 
 # Set up Dropbox API client
 dbx = dropbox.Dropbox(
-    "sl.BeJDu-k4a7kLEy17RkxykZQZKFExJm3g_bzEbzqDelzofCVLG_gJcfssyiXTHLYs6Om9Ecl_wNDc7QKh7zikD0k_HIfKAx5d3whcLXjFublihX-lvgIwf9jL7kF4uhuMm-beFX0")
+    "sl.BebEak0dpgF6NZLEPCfg2BUmH-Ce0NT0neO2CKCasEs0Q3LH47Lh-55f1Wbcs-kyvuHVlv1eMdDWIgFkmwJMWEBsKDTEtOWZxaqGqFjbPsFsp3Z-ebn5YQthQpKvxW53yqRU4dU")
 
 
 def add_game_data(file, games, teams, players, events, shifts):
@@ -34,8 +34,6 @@ def add_game_data(file, games, teams, players, events, shifts):
     a3z_pbp = get_clean_a3z_game_data(
         file_data, nhl_api.players_dict, nhl_api.teams_dict)
     merged_pbp = nhl_api.merge_with_a3z(a3z_pbp)
-    merged_pbp.to_sql("events", database.engine,
-                      if_exists="append", index=False)
     games = games + [nhl_api.game]
     teams = teams + nhl_api.teams
     players = players + nhl_api.players
@@ -76,11 +74,6 @@ if not args.dry_run:
     database.init_no_app(args.backfill)
     with database.session() as db:
         with db.begin():
-            # Prompt user to choose between file or folder
-            games = []
-            teams = []
-            players = []
-            shifts = []
             if not args.dry_run:
                 db.execute(Database.upsert(game.Game, games))
                 db.execute(Database.upsert(team.Team, teams))

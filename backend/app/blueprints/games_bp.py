@@ -60,8 +60,17 @@ def load_game(game_id):
 
 def get_dict(game):
     game_dict = game.to_dict()
-    game_dict["homeTeamName"] = game.homeTeam.name
-    game_dict["awayTeamName"] = game.awayTeam.name
+    game_dict['homeTeam'] = {}
+    game_dict['awayTeam'] = {}
+    print(game.awayTeam.id)
+    game_dict['homeTeam']['name'] = game.homeTeam.name
+    game_dict['homeTeam']['id'] = game.homeTeamId
+    game_dict['homeTeam']['coach'] = game.homeCoach
+    game_dict['homeTeam']['score'] = game.homeScore
+    game_dict['awayTeam']['id'] = game.awayTeamId
+    game_dict['awayTeam']['name'] = game.awayTeam.name
+    game_dict['awayTeam']['coach'] = game.awayCoach
+    game_dict['awayTeam']['score'] = game.awayScore
     return game_dict
 
 
@@ -74,7 +83,7 @@ def show_games():
         game_dict = get_dict(game)
         events = events + get_events_for_game(game)
         game_list.append(game_dict)
-    return jsonify({'events': events})
+    return jsonify({'games': { 'game': None, 'events': events}})
 
 
 @games_bp.route("/<int:id>/")
