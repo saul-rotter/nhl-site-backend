@@ -62,7 +62,6 @@ def get_dict(game):
     game_dict = game.to_dict()
     game_dict['homeTeam'] = {}
     game_dict['awayTeam'] = {}
-    print(game.awayTeam.id)
     game_dict['homeTeam']['name'] = game.homeTeam.name
     game_dict['homeTeam']['id'] = game.homeTeamId
     game_dict['homeTeam']['coach'] = game.homeCoach
