@@ -19,8 +19,7 @@ def get_all_games():
     session = db.session()
     games = session.scalars(
         select(Game).options(
-            selectinload(Game.homeTeam).load_only(Team.name),
-            selectinload(Game.awayTeam).load_only(Team.name),
+            load_only(Game.id)
         )
     ).all()
 
@@ -76,13 +75,7 @@ def get_dict(game):
 @games_bp.route("/")
 def show_games():
     games = get_all_games()
-    game_list = []
-    events = []
-    for game in games:
-        game_dict = get_dict(game)
-        events = events + get_events_for_game(game)
-        game_list.append(game_dict)
-    return jsonify({'games': { 'game': None, 'events': events}})
+    return jsonify({'games': games})
 
 
 @games_bp.route("/<int:id>/")
