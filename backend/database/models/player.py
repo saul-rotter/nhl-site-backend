@@ -32,5 +32,8 @@ class Player(Base, DictMixIn):
         return {
             'id': self.id,
             'name': self.name,
-            'postion': self.position,
+            'position': self.position,
+            'teamId': self.teamId,
+            'handedness':self.hand,
+            'number': self.number,
         }
