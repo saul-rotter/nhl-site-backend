@@ -5,13 +5,6 @@ from sqlalchemy import select
 from flask import Blueprint, jsonify
 from sqlalchemy.orm import load_only, selectinload
 from database.models.team import Team
-from fastapi import APIRouter
-
-router = APIRouter(
-    prefix="/items",
-    tags=["items"],
-    responses={404: {"description": "Not found"}},
-)
 players_bp = Blueprint("players", __name__)
 
 

@@ -5,13 +5,6 @@ from sqlalchemy import select
 from sqlalchemy.orm import load_only, selectinload
 from flask import Blueprint, jsonify
 from app.blueprints.events import get_events_for_game
-from fastapi import APIRouter
-
-router = APIRouter(
-    prefix="/games",
-    tags=["games"],
-    responses={404: {"description": "Not found"}},
-)
 games_bp = Blueprint("games", __name__)
 
 

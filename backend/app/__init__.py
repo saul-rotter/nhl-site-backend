@@ -1,11 +1,8 @@
 """Flask App Factory"""
 
 import os
-from flask import Flask, jsonify, url_for
+from flask import Flask
 from database import Database, SQLALCHEMY_DATABASE_URL
-from database.models import game, team, event, player, shift
-import uvicorn
-from fastapi import FastAPI
 
 
 # type: ignore

@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, scoped_session
-from flask import g
 from greenlet import getcurrent as _get_ident
 from sqlalchemy.dialects.sqlite import insert
 import datetime

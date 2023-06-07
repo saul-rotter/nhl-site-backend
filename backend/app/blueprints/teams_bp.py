@@ -1,17 +1,9 @@
 from database.models.team import Team
-import pandas as pd
 from sqlalchemy import select
-from sqlalchemy.orm import load_only, selectinload
 from sqlalchemy import func
 from app import db
 from flask import Blueprint, jsonify
-from fastapi import APIRouter
 
-router = APIRouter(
-    prefix="/teams",
-    tags=["players"],
-    responses={404: {"description": "Not found"}},
-)
 teams_bp = Blueprint("teams", __name__)
 
 
