@@ -31,7 +31,7 @@ args = parser.parse_args()
 
 # Set up Dropbox API client
 dbx = dropbox.Dropbox(
-    "sl.BgeOIP718JHjwGviHb3qOj1-w-D0g9VRyrb9JBZpcoQdlMa4-j_-Quk8__ESvcYjtX8hojRbhyHY1dImBv4rVqQBfmR2kgEK-gopDiX04_PIOhicsqlaixuqo9I302MjmqNF6w8"
+    "sl.Bgjbivzn7kDfnmFjtyf8PDWf9PDqXhhnPPz4P7IVeiSng4vqMMXm4FC8meE3k0Spw3O8IhHsKpsFg5slNpzUTy3DsDqWhRaMUJNmgf7BsXbfNt1HNPILsuB5FmRQWxzjZPc-tUo"
 )
 
 
