@@ -11,7 +11,6 @@ password="mypasswordsorry"
 hostname="saulrotter.mysql.pythonanywhere-services.com"
 databasename="saulrotter$nhl-site"
 SQLALCHEMY_DATABASE_URL = f'mysql+pymysql://{username}:{password}@{hostname}/{databasename}'
-#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
 Base = declarative_base()
 
 
