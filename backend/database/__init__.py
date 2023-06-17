@@ -6,7 +6,12 @@ import datetime
 
 # SQLALCHEMY_DATABASE_URL = "sqlite:///./database/nhl.db"
 SQLALCHEMY_DATABASE_URL = "mysql+pymysql://root:password@127.0.0.1:3306/nhl_db"
-
+username="saulrotter"
+password="password"
+hostname="saulrotter.mysql.pythonanywhere-services.com"
+databasename="saulrotter$nhl-site"
+# SQLALCHEMY_DATABASE_URL = f'mysql+pymysql://{username}:{password}@{hostname}/{databasename}'
+    
 Base = declarative_base()
 
 
@@ -26,7 +31,7 @@ class Database:
     def init_no_app(self, restart=False):
         """Set up SQLAlchemy to work with Flask Application"""
         # connect database
-        self.engine = create_engine(SQLALCHEMY_DATABASE_URL)
+        self.engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_recycle=299)
         # create session factory
         self.sessionmaker = sessionmaker(bind=self.engine)
         # set up scoped_session registry
@@ -39,7 +44,7 @@ class Database:
     def init_app(self, app):
         """Set up SQLAlchemy to work with Flask Application"""
         # connect database
-        self.engine = create_engine(app.config["DATABASE"])
+        self.engine = create_engine(app.config["DATABASE"], pool_recycle=app.config['POOL_RECYCLE'])
         # create session factory
         self.sessionmaker = sessionmaker(
             autocommit=False, autoflush=False, bind=self.engine

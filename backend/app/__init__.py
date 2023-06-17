@@ -18,6 +18,7 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY="dev",
         DATABASE=SQLALCHEMY_DATABASE_URL,
+        POOL_RECYCLE=299,
     )
     CORS(app)
     db.init_app(app)
