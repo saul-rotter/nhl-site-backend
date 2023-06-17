@@ -12,12 +12,12 @@ class Game(Base, DictMixIn):
 
     id = mapped_column(Integer, primary_key=True, index=True)
     season = mapped_column(Integer)
-    startTime = mapped_column(String)
+    startTime = mapped_column(String(50))
     homeTeamId = mapped_column(Integer, ForeignKey("teams.id"))
-    homeCoach = mapped_column(String)
+    homeCoach = mapped_column(String(50))
     homeScore = mapped_column(Integer)
     awayTeamId = mapped_column(Integer, ForeignKey("teams.id"))
-    awayCoach = mapped_column(String)
+    awayCoach = mapped_column(String(50))
     awayScore = mapped_column(Integer)
 
     homeTeam = relationship("Team", foreign_keys=[

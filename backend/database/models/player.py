@@ -7,12 +7,12 @@ from sqlalchemy.ext.hybrid import hybrid_property
 class Player(Base, DictMixIn):
     __tablename__ = "players"
 
-    id = mapped_column(Integer, primary_key=True, index=True)
-    name = mapped_column(String)
+    id = mapped_column(Integer, primary_key=True, index=True, nullable=True)
+    name = mapped_column(String(50))
     number = mapped_column(Integer)
     teamId = mapped_column(Integer, ForeignKey("teams.id"))
-    position = mapped_column(String)
-    hand = mapped_column(String)
+    position = mapped_column(String(50))
+    hand = mapped_column(String(50))
 
     team = relationship("Team", back_populates="roster")
 

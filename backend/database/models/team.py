@@ -10,9 +10,9 @@ class Team(Base, DictMixIn):
     __tablename__ = "teams"
 
     id = mapped_column(Integer, primary_key=True, index=True)
-    abbrev = mapped_column(String)
-    city = mapped_column(String)
-    name = mapped_column(String)
+    abbrev = mapped_column(String(50))
+    city = mapped_column(String(50))
+    name = mapped_column(String(50))
 
     games = relationship(
         "Game",
