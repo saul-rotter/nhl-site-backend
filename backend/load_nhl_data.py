@@ -32,8 +32,7 @@ def deleteLeadingZeros(inputString):
 class NHLGameFeed:
     def __init__(self, gameId) -> None:
         self.gameId = gameId
-        nhl_response = requests.get(
-            nhl_endpoint.format(gameId))
+        nhl_response = requests.get(nhl_endpoint.format(gameId))
         self.api_data = nhl_response.json()
         self.shifts = []
         self.pbp = []
@@ -56,20 +55,20 @@ class NHLGameFeed:
         )
         shifts = response.json()
         shifts_list = []
-        for shift_obj in shifts['data']:
-            shift_obj['shiftStart'] = convertTime(
-                shift_obj['startTime'], shift_obj['period']
+        for shift_obj in shifts["data"]:
+            shift_obj["shiftStart"] = convertTime(
+                shift_obj["startTime"], shift_obj["period"]
             )
-            shift_obj['shiftEnd'] = convertTime(
-                shift_obj['endTime'], shift_obj['period']
+            shift_obj["shiftEnd"] = convertTime(
+                shift_obj["endTime"], shift_obj["period"]
             )
             shifts_list.append(
                 {
-                    'gameId': int(shift_obj['gameId']),
-                    'playerId': int(shift_obj['playerId']),
-                    'teamId': int(shift_obj['teamId']),
-                    'shiftStart': int(shift_obj['shiftStart']),
-                    'shiftEnd': int(shift_obj['shiftEnd'])
+                    "gameId": int(shift_obj["gameId"]),
+                    "playerId": int(shift_obj["playerId"]),
+                    "teamId": int(shift_obj["teamId"]),
+                    "shiftStart": int(shift_obj["shiftStart"]),
+                    "shiftEnd": int(shift_obj["shiftEnd"]),
                 }
             )
         return shifts_list
@@ -79,17 +78,17 @@ class NHLGameFeed:
         for player_dict in player_data.values():
             players.append(
                 {
-                    'id': player_dict["person"]["id"],
-                    'name': player_dict["person"]["fullName"],
-                    'number': player_dict["jerseyNumber"],
-                    'teamId': team_id,
-                    'position': player_dict["position"]["code"],
-                    'hand': player_dict["person"]["shootsCatches"],
+                    "id": player_dict["person"]["id"],
+                    "name": player_dict["person"]["fullName"],
+                    "number": player_dict["jerseyNumber"],
+                    "teamId": team_id,
+                    "position": player_dict["position"]["code"],
+                    "hand": player_dict["person"]["shootsCatches"],
                 }
             )
-            self.players_dict[(team_id, player_dict["jerseyNumber"])] = player_dict["person"][
-                "id"
-            ]
+            self.players_dict[(team_id, int(player_dict["jerseyNumber"]))] = int(
+                player_dict["person"]["id"]
+            )
         return players
 
     def _fill_game_metadata(self):
@@ -97,7 +96,8 @@ class NHLGameFeed:
         season = self.api_data["gameData"]["game"]["season"]
         startTime = utc_to_est(
             datetime.fromisoformat(
-                self.api_data["gameData"]["datetime"]["dateTime"][:-1])
+                self.api_data["gameData"]["datetime"]["dateTime"][:-1]
+            )
         ).strftime("%m/%d/%Y, %H:%M:%S")
         awayTeamId = self.api_data["gameData"]["teams"]["away"]["id"]
         homeTeamId = self.api_data["gameData"]["teams"]["home"]["id"]
@@ -107,22 +107,22 @@ class NHLGameFeed:
         awayScore = self.api_data["liveData"]["boxscore"]["teams"]["away"]["teamStats"][
             "teamSkaterStats"
         ]["goals"]
-        homeCoach = self.api_data["liveData"]["boxscore"]["teams"]["home"]["coaches"][0]["person"][
-            "fullName"
-        ]
-        awayCoach = self.api_data["liveData"]["boxscore"]["teams"]["away"]["coaches"][0]["person"][
-            "fullName"
-        ]
+        homeCoach = self.api_data["liveData"]["boxscore"]["teams"]["home"]["coaches"][
+            0
+        ]["person"]["fullName"]
+        awayCoach = self.api_data["liveData"]["boxscore"]["teams"]["away"]["coaches"][
+            0
+        ]["person"]["fullName"]
         return {
-            'id': gameId,
-            'season': season,
-            'startTime': startTime,
-            'homeTeamId': homeTeamId,
-            'homeCoach': homeCoach,
-            'homeScore': homeScore,
-            'awayTeamId': awayTeamId,
-            'awayCoach': awayCoach,
-            'awayScore': awayScore,
+            "id": gameId,
+            "season": season,
+            "startTime": startTime,
+            "homeTeamId": homeTeamId,
+            "homeCoach": homeCoach,
+            "homeScore": homeScore,
+            "awayTeamId": awayTeamId,
+            "awayCoach": awayCoach,
+            "awayScore": awayScore,
         }
 
     def _fill_pbp(self):
@@ -150,18 +150,20 @@ class NHLGameFeed:
                 datetime.fromisoformat(pbp[i]["about"]["dateTime"][:-1])
             ).strftime("%m/%d/%Y, %H:%M:%S")
             event[i] = pbp[i]["result"]["event"]
-            if event[i] == 'Blocked Shot':
-                event[i] = 'Missed Shot'
-                team[i] = awayTeamId if pbp[i]["team"]["id"] == homeTeamId else homeTeamId
-                p1[i] = pbp[i]["players"][1]["player"]["id"]
-                p2[i] = pbp[i]["players"][0]["player"]["id"]
+            if event[i] == "Blocked Shot":
+                event[i] = "Missed Shot"
+                team[i] = (
+                    awayTeamId if pbp[i]["team"]["id"] == homeTeamId else homeTeamId
+                )
+                p1[i] = int(pbp[i]["players"][1]["player"]["id"])
+                p2[i] = int(pbp[i]["players"][0]["player"]["id"])
                 # Do the action
             try:
                 team[i] = pbp[i]["team"]["id"]
             except KeyError:
                 pass
             try:
-                p1[i] = pbp[i]["players"][0]["player"]["id"]
+                p1[i] = int(pbp[i]["players"][0]["player"]["id"])
             except KeyError:
                 pass
             try:
@@ -169,9 +171,9 @@ class NHLGameFeed:
             except KeyError:
                 pass
             try:
-                if event[i] == 'Goal':
+                if event[i] == "Goal":
                     continue
-                p2[i] = pbp[i]["players"][1]["player"]["id"]
+                p2[i] = int(pbp[i]["players"][1]["player"]["id"])
             except KeyError:
                 pass
             except IndexError:  # e.g. on a give or take
@@ -187,7 +189,7 @@ class NHLGameFeed:
                 "oppPlayer": p2,
                 "type": event_type,
                 "homeScore": homeGoals,
-                "awayScore": awayGoals
+                "awayScore": awayGoals,
             },
         )
         # pbpdf.drop(pbpdf[pbpdf["team"] == ""].index, inplace=True)
@@ -196,8 +198,7 @@ class NHLGameFeed:
         # pbpdf["time_since_last_event"] = (pbpdf.dateTime - pbpdf.datetime_shifted).apply(
         #     lambda x: x.total_seconds()
         # )
-        pbpdf["time"] = pbpdf["time"].astype(
-            str).apply(deleteLeadingZeros)
+        pbpdf["time"] = pbpdf["time"].astype(str).apply(deleteLeadingZeros)
 
         def convert_game_time(period, time):
             time_list = time.split(":")
@@ -218,15 +219,17 @@ class NHLGameFeed:
         for team_boxscore in boxscore["teams"].values():
             teams.append(
                 {
-                    'id': team_boxscore["team"]["id"],
-                    'abbrev': team_boxscore["team"]["triCode"],
-                    'name': team_boxscore["team"]["name"],
+                    "id": team_boxscore["team"]["id"],
+                    "abbrev": team_boxscore["team"]["triCode"],
+                    "name": team_boxscore["team"]["name"],
                 }
             )
-            self.teams_dict[team_boxscore["team"]["triCode"]
-                            ] = team_boxscore["team"]["id"]
-            self.teams_dict[team_boxscore["team"]
-                            ["name"].lower()] = team_boxscore["team"]["id"]
+            self.teams_dict[team_boxscore["team"]["triCode"]] = team_boxscore["team"][
+                "id"
+            ]
+            self.teams_dict[team_boxscore["team"]["name"].lower()] = team_boxscore[
+                "team"
+            ]["id"]
             players.extend(
                 self._fill_players_from_boxscore(
                     team_boxscore["players"], team_boxscore["team"]["id"]
@@ -246,8 +249,9 @@ class NHLGameFeed:
             )
         ).sort_values("seconds")
         merged_df["oppPlayer"] = merged_df[["oppPlayer_x", "oppPlayer_y"]].apply(
-            lambda x: x["oppPlayer_y"] if pd.isna(
-                x["oppPlayer_x"]) else x["oppPlayer_x"],
+            lambda x: x["oppPlayer_y"]
+            if pd.isna(x["oppPlayer_x"])
+            else x["oppPlayer_x"],
             axis=1,
         )
         merged_df.drop(["oppPlayer_x", "oppPlayer_y"], axis=1, inplace=True)
@@ -255,23 +259,24 @@ class NHLGameFeed:
             lambda x: awayTeamId if x == homeTeamId else homeTeamId
         )
         merged_df["type"] = merged_df[["type_x", "type_y"]].apply(
-            lambda x: x["type_y"] if pd.isna(
-                x["type_x"]) else x["type_x"],
+            lambda x: x["type_y"] if pd.isna(x["type_x"]) else x["type_x"],
             axis=1,
         )
         merged_df.drop(["type_x", "type_y"], axis=1, inplace=True)
         merged_df["gameId"] = self.gameId
-        merged_df["homeScore"] = merged_df["homeScore"].fillna(method='ffill')
-        merged_df["awayScore"] = merged_df["awayScore"].fillna(method='ffill')
-        return merged_df.rename(columns={
-            'team': 'teamId',
-            'oppTeam': 'oppTeamId',
-            'player': 'playerId',
-            'oppPlayer': 'oppPlayerId',
-            'oppTeam': 'oppTeamId',
-            'recovery': 'recoveryId',
-            'retrieval': 'retrievalId',
-            'primaryAssist': 'primaryAssistId',
-            'secondaryAssist': 'secondaryAssistId',
-            'tertiaryAssist': 'tertiaryAssistId',
-        })
+        merged_df["homeScore"] = merged_df["homeScore"].fillna(method="ffill")
+        merged_df["awayScore"] = merged_df["awayScore"].fillna(method="ffill")
+        return merged_df.rename(
+            columns={
+                "team": "teamId",
+                "oppTeam": "oppTeamId",
+                "player": "playerId",
+                "oppPlayer": "oppPlayerId",
+                "oppTeam": "oppTeamId",
+                "recovery": "recoveryId",
+                "retrieval": "retrievalId",
+                "primaryAssist": "primaryAssistId",
+                "secondaryAssist": "secondaryAssistId",
+                "tertiaryAssist": "tertiaryAssistId",
+            }
+        )

@@ -1,10 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, scoped_session
 from greenlet import getcurrent as _get_ident
-from sqlalchemy.dialects.sqlite import insert
+from sqlalchemy.dialects.mysql import insert
 import datetime
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./database/nhl.db"
+# SQLALCHEMY_DATABASE_URL = "sqlite:///./database/nhl.db"
+SQLALCHEMY_DATABASE_URL = "mysql+pymysql://root:password@127.0.0.1:3306/nhl_db"
 
 Base = declarative_base()
 
@@ -25,13 +26,9 @@ class Database:
     def init_no_app(self, restart=False):
         """Set up SQLAlchemy to work with Flask Application"""
         # connect database
-        self.engine = create_engine(
-            SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-        )
+        self.engine = create_engine(SQLALCHEMY_DATABASE_URL)
         # create session factory
-        self.sessionmaker = sessionmaker(
-            autocommit=False, autoflush=False, bind=self.engine
-        )
+        self.sessionmaker = sessionmaker(bind=self.engine)
         # set up scoped_session registry
         # #add ability to access scoped session registry (implicitly)
         self.session = self.init_scoped_session()
@@ -72,5 +69,5 @@ class Database:
     @classmethod
     def upsert(cls, table, values):
         stmt = insert(table).values(values)
-        stmt = stmt.on_conflict_do_nothing()
+        stmt = stmt.prefix_with("IGNORE")
         return stmt

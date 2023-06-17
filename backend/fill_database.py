@@ -1,5 +1,5 @@
 # type: ignore
-import requests
+import numpy as np
 import dropbox
 import pandas as pd
 from load_nhl_data import NHLGameFeed
@@ -9,18 +9,30 @@ from database.models import player, team, event, game, shift
 import argparse
 
 parser = argparse.ArgumentParser(
-    prog='FillNHLDatabase',
-    description='Pulls data from nhl API and dropbox to fill the API for the nhl play app')
-parser.add_argument('-b', '--backfill', action='store_true', dest='backfill',
-                    help='If true, will reset the entire database and start from scratch. Otherwise, it will only add new data')
-parser.add_argument('-d', '--dry_run', action='store_true',
-                    dest='dry_run', help='If true it will not write to the database')
+    prog="FillNHLDatabase",
+    description="Pulls data from nhl API and dropbox to fill the API for the nhl play app",
+)
+parser.add_argument(
+    "-b",
+    "--backfill",
+    action="store_true",
+    dest="backfill",
+    help="If true, will reset the entire database and start from scratch. Otherwise, it will only add new data",
+)
+parser.add_argument(
+    "-d",
+    "--dry_run",
+    action="store_true",
+    dest="dry_run",
+    help="If true it will not write to the database",
+)
 
 args = parser.parse_args()
 
 # Set up Dropbox API client
 dbx = dropbox.Dropbox(
-    "sl.BebEak0dpgF6NZLEPCfg2BUmH-Ce0NT0neO2CKCasEs0Q3LH47Lh-55f1Wbcs-kyvuHVlv1eMdDWIgFkmwJMWEBsKDTEtOWZxaqGqFjbPsFsp3Z-ebn5YQthQpKvxW53yqRU4dU")
+    "sl.BgeOIP718JHjwGviHb3qOj1-w-D0g9VRyrb9JBZpcoQdlMa4-j_-Quk8__ESvcYjtX8hojRbhyHY1dImBv4rVqQBfmR2kgEK-gopDiX04_PIOhicsqlaixuqo9I302MjmqNF6w8"
+)
 
 
 def add_game_data(file, games, teams, players, events, shifts):
@@ -32,7 +44,8 @@ def add_game_data(file, games, teams, players, events, shifts):
     nhl_api = NHLGameFeed(full_game_id)
     nhl_api.initialize_data()
     a3z_pbp = get_clean_a3z_game_data(
-        file_data, nhl_api.players_dict, nhl_api.teams_dict)
+        file_data, nhl_api.players_dict, nhl_api.teams_dict
+    )
     merged_pbp = nhl_api.merge_with_a3z(a3z_pbp)
     games = games + [nhl_api.game]
     teams = teams + nhl_api.teams
@@ -55,19 +68,21 @@ while True:
         # Download file from Dropbox
         file = dbx.files_download(file_path)[1]
         (games, players, teams, events, shifts) = add_game_data(
-            file, games, teams, players, events, shifts)
+            file, games, teams, players, events, shifts
+        )
         break
 
     elif choice == "folder":
         # Prompt user to enter folder path
         season = input("Enter season: ")
         # List files in folder
-        for entry in dbx.files_list_folder(f'/{season}').entries:
+        for entry in dbx.files_list_folder(f"/{season}").entries:
             if isinstance(entry, dropbox.files.FileMetadata):
                 # Download file from Dropbox
                 file = dbx.files_download(entry.path_display)[1]
-                (games, players, teams, events, shifts) = add_game_data(file, games, teams,
-                                                                        players, events, shifts)
+                (games, players, teams, events, shifts) = add_game_data(
+                    file, games, teams, players, events, shifts
+                )
         break
 if not args.dry_run:
     database = Database()
@@ -75,10 +90,13 @@ if not args.dry_run:
     with database.session() as db:
         with db.begin():
             if not args.dry_run:
-                db.execute(Database.upsert(game.Game, games))
                 db.execute(Database.upsert(team.Team, teams))
                 db.execute(Database.upsert(player.Player, players))
+                db.execute(Database.upsert(game.Game, games))
                 db.execute(Database.upsert(shift.Shift, shifts))
-    event_df = pd.concat(events)
-    event_df.to_sql("events", database.engine,
-                    if_exists="append", index=False)
+                db.commit()
+                db.close()
+        event_df = pd.concat(events)
+        event_df.replace("", np.NaN, inplace=True)
+        # print(event_df['recoveryId'].unique())
+        event_df.to_sql("events", database.engine, if_exists="append", index=False)
