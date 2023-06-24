@@ -1,10 +1,7 @@
-from .team import Team
-from sqlalchemy import select, Integer, String, ForeignKey
-from sqlalchemy.orm import load_only, selectinload, mapped_column, relationship
-from flask import Blueprint, jsonify
-from database import Base, DictMixIn
+from sqlalchemy import Integer, String, ForeignKey
+from sqlalchemy.orm import mapped_column, relationship
 
-games_bp = Blueprint("games", __name__)
+from database import Base, DictMixIn
 
 
 class Game(Base, DictMixIn):

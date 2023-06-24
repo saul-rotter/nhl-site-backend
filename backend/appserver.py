@@ -1,7 +1,9 @@
 from app import create_app
+from app.blueprints.init_ns import api
 
 if __name__ == '__main__':
-    create_app = create_app()
-    create_app.run()
+    app = create_app()
+    api.init_app(app)
+    app.run(debug=True)
 else:
-    gunicorn_app = create_app()
+    app = create_app()

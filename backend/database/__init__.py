@@ -5,12 +5,12 @@ from sqlalchemy.dialects.mysql import insert
 import datetime
 
 # SQLALCHEMY_DATABASE_URL = "sqlite:///./database/nhl.db"
-# SQLALCHEMY_DATABASE_URL = "mysql+pymysql://root:password@127.0.0.1:3306/nhl_db"
+SQLALCHEMY_DATABASE_URL = "mysql+pymysql://root:password@127.0.0.1:3306/nhl_db"
 username="saulrotter"
 password="mypasswordsorry"
 hostname="saulrotter.mysql.pythonanywhere-services.com"
 databasename="saulrotter$nhl-site"
-SQLALCHEMY_DATABASE_URL = f'mysql+pymysql://{username}:{password}@{hostname}/{databasename}'
+# SQLALCHEMY_DATABASE_URL = f'mysql+pymysql://{username}:{password}@{hostname}/{databasename}'
 Base = declarative_base()
 
 

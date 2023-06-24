@@ -31,10 +31,6 @@ def create_app(test_config=None):
     @app.before_request
     def start():
         db.start_session()
-
-    from app.blueprints import init_blueprints
-
-    init_blueprints(app)
     return app
 
 
