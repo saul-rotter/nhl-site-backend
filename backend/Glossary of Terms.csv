@@ -1,0 +1,20 @@
+Shot Types
+a - wrap-around
+b - backhander
+s - slapshot
+w - wrist shot
+o - one-timer
+r - rebound
+t - tip/deflection
+
+Pass Types
+"Passes are coded by the zones which they occur (o, n, d) followed by the lane (left, center or right). "
+"Pass types (behind net, stretch pass) are noted when applicable (ex. Dsr = stretch pass from right side of defensive zone, ol = pass from left side in offensive zone)"
+
+Pass Type Glossary:
+p - low-to-high pass or pass to the point
+s - strech pass
+f - faceoff win
+"rr - royal road, or a pass that crosses the middle of the slot"
+el - behind net/goal line pass
+Pass definitions are from Ryan Stimson's Passing Project

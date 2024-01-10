@@ -1,8 +1,6 @@
 # type: ignore
 
 import pandas as pd
-import urllib.request
-import json
 from datetime import datetime, timedelta
 import re
 import requests
@@ -139,6 +137,7 @@ class NHLGameFeed:
         p2 = [None for i in range(len(pbp))]
         awayGoals = [None for i in range(len(pbp))]
         homeGoals = [None for i in range(len(pbp))]
+        result = [None for i in range(len(pbp))]
 
         for i in range(len(pbp)):
             period[i] = int(pbp[i]["about"]["period"])
@@ -151,13 +150,22 @@ class NHLGameFeed:
             ).strftime("%m/%d/%Y, %H:%M:%S")
             event[i] = pbp[i]["result"]["event"]
             if event[i] == "Blocked Shot":
-                event[i] = "Missed Shot"
+                event[i] = "Shot"
+                result[i] = "Blocked"
                 team[i] = (
                     awayTeamId if pbp[i]["team"]["id"] == homeTeamId else homeTeamId
                 )
-                p1[i] = int(pbp[i]["players"][1]["player"]["id"])
-                p2[i] = int(pbp[i]["players"][0]["player"]["id"])
+                p1[i] = int(pbp[i]["players"][0]["player"]["id"])
+                p2[i] = int(pbp[i]["players"][1]["player"]["id"])
                 # Do the action
+            elif event[i] == "Missed Shot":
+                event[i] = "Shot"
+                result[i] = "Missed"
+            elif event[i] == "Goal":
+                event[i] = "Shot"
+                result[i] = "Goal"
+            elif event[i] == "Shot":
+                result[i] = "On Goal"
             try:
                 team[i] = pbp[i]["team"]["id"]
             except KeyError:
@@ -171,8 +179,6 @@ class NHLGameFeed:
             except KeyError:
                 pass
             try:
-                if event[i] == "Goal":
-                    continue
                 p2[i] = int(pbp[i]["players"][1]["player"]["id"])
             except KeyError:
                 pass
@@ -190,6 +196,7 @@ class NHLGameFeed:
                 "type": event_type,
                 "homeScore": homeGoals,
                 "awayScore": awayGoals,
+                "result": result,
             },
         )
         # pbpdf.drop(pbpdf[pbpdf["team"] == ""].index, inplace=True)
@@ -198,7 +205,7 @@ class NHLGameFeed:
         # pbpdf["time_since_last_event"] = (pbpdf.dateTime - pbpdf.datetime_shifted).apply(
         #     lambda x: x.total_seconds()
         # )
-        pbpdf["time"] = pbpdf["time"].astype(str).apply(deleteLeadingZeros)
+        pbpdf["num_time"] = pbpdf["time"].astype(str).apply(deleteLeadingZeros)
 
         def convert_game_time(period, time):
             time_list = time.split(":")
@@ -206,7 +213,7 @@ class NHLGameFeed:
             return int(period * 1200 - clock)
 
         pbpdf["seconds"] = pbpdf.apply(
-            lambda x: convert_game_time(x["period"], x["time"]), axis=1
+            lambda x: convert_game_time(x["period"], x["num_time"]), axis=1
         )
         # pbpdf.drop(["period", "time"], axis=1, inplace=True)
         # pbpdf.set_index("seconds", inplace=True, drop=False)
@@ -266,7 +273,8 @@ class NHLGameFeed:
         merged_df["gameId"] = self.gameId
         merged_df["homeScore"] = merged_df["homeScore"].fillna(method="ffill")
         merged_df["awayScore"] = merged_df["awayScore"].fillna(method="ffill")
-        return merged_df.rename(
+        
+        merged_df.rename(
             columns={
                 "team": "teamId",
                 "oppTeam": "oppTeamId",
@@ -278,5 +286,20 @@ class NHLGameFeed:
                 "primaryAssist": "primaryAssistId",
                 "secondaryAssist": "secondaryAssistId",
                 "tertiaryAssist": "tertiaryAssistId",
-            }
+            },
+            inplace=True
         )
+
+        assist_columns = ['chance', 'lane', 'primaryAssistId', 'secondaryAssistId', 'tertiaryAssistId','playType', 'oddman',
+        'primaryZone', 'secondaryZone', 'tertiaryZone', 'primaryLane',
+        'secondaryLane', 'tertiaryLane', 'primaryPassType', 'secondaryPassType',
+        'tertiaryPassType', 'type']
+        shots = merged_df[merged_df['event'] == 'Shot']
+        shots['time_diff'] = shots['seconds'].diff()
+        prev_index = -1
+        for index, row in shots.iterrows():
+            if (row['time_diff'] <= 1):
+                merged_df.loc[prev_index, assist_columns] = row[assist_columns]
+            prev_index = index
+        return merged_df.drop(shots[(shots['time_diff'] <= 1)].index)
+        

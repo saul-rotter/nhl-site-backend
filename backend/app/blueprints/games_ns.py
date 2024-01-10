@@ -1,4 +1,4 @@
-from flask import jsonify
+from flask import request
 from flask_restx import Namespace, Resource, fields, reqparse
 from database.models.team import Team
 from database.models.game import Game
@@ -8,6 +8,7 @@ from sqlalchemy.orm import load_only, selectinload
 from app.blueprints.events import get_events_for_game
 from app.blueprints.events_ns import event_model
 from app.blueprints.teams_ns import team_model
+import functools
 # Create a Flask-RESTX Namespace
 games_ns = Namespace("games", description="Game related operations")
 
@@ -32,6 +33,8 @@ class GamesResource(Resource):
 class GameResource(Resource):
     @games_ns.marshal_with(game_model, skip_none=True)
     def get(self, id):
+        page = request.args.get('page', None, type=int)
+        limit = 25
         session = db.session()
         game = session.get(
             Game,
@@ -47,13 +50,13 @@ class GameResource(Resource):
 
         game_dict = get_dict(game)
         events = get_events_for_game(game)
-        print(events)
-        response = {
-            "game": game_dict,
-            "events": events,
-        }
+        if (not(page is None)) :
+            events = events[(page * limit) : (page * limit) + limit]
+        print(game_dict)
+        game_dict["events"] =  events
+           
 
-        return response
+        return game_dict
 
 def get_all_games_with_team():
     session = db.session()

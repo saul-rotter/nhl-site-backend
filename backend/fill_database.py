@@ -7,7 +7,8 @@ from database import Database
 from load_a3z_data import get_clean_a3z_game_data
 from database.models import player, team, event, game, shift
 import argparse
-
+from moneypuck import get_game_data
+pd.options.mode.chained_assignment = None  # default='warn'
 parser = argparse.ArgumentParser(
     prog="FillNHLDatabase",
     description="Pulls data from nhl API and dropbox to fill the API for the nhl play app",
@@ -31,7 +32,7 @@ args = parser.parse_args()
 
 # Set up Dropbox API client
 dbx = dropbox.Dropbox(
-    "sl.Bgxj7i9HzUipNyyWxVX_6aFIfK4dLLczVDZX8bppAuRx4TzquM8Bh6v3kAKWBBPuo1ufCr22UHhflIwOoM_nLcUmEfEQAW5EutwDwwYUQ52YdHjr9sOzIJcfCfNqco_8H5i8RLY"
+    "sl.BnUCImc6H7L2KZPWEV7uG2eIcm8xyXf5dKQlppSfUrm6S0XPgzGEhN1_GXHmxly51RwZCn4JKLp7QTqC1G02qt0Bc8SKxWR9bk1F7MB-3WC4jUQshO-yHMi2w2oORdWa3A1HAXyfUdDD"
 )
 
 
@@ -46,7 +47,10 @@ def add_game_data(file, games, teams, players, events, shifts):
     a3z_pbp = get_clean_a3z_game_data(
         file_data, nhl_api.players_dict, nhl_api.teams_dict
     )
+    
     merged_pbp = nhl_api.merge_with_a3z(a3z_pbp)
+    mp_data = get_game_data(season,game_id)
+    merged_pbp= pd.merge(merged_pbp,mp_data[['seconds', 'xGoal', 'arenaAdjustedXCord', 'arenaAdjustedYCord']], on='seconds',how='outer')
     games = games + [nhl_api.game]
     teams = teams + nhl_api.teams
     players = players + nhl_api.players
@@ -60,6 +64,7 @@ games = []
 players = []
 teams = []
 shifts = []
+
 while True:
     choice = input("Enter 'file' or 'folder': ")
     if choice == "file":
@@ -84,6 +89,7 @@ while True:
                     file, games, teams, players, events, shifts
                 )
         break
+print(pd.concat(events).columns)
 if not args.dry_run:
     database = Database()
     database.init_no_app(args.backfill)
@@ -96,7 +102,7 @@ if not args.dry_run:
                 db.execute(Database.upsert(shift.Shift, shifts))
                 db.commit()
                 db.close()
-        event_df = pd.concat(events)
+        event_df = pd.concat(events).drop_duplicates()
         event_df.replace("", np.NaN, inplace=True)
         # print(event_df['recoveryId'].unique())
         event_df.to_sql("events", database.engine, if_exists="append", index=False)

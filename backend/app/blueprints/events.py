@@ -2,8 +2,8 @@ from app import db
 from database.models.game import Game
 from database.models.shift import Shift
 from operator import concat
-
-
+import functools
+@functools.lru_cache
 def get_events_for_game(game):
     if not isinstance(game, Game):
         session = db.session()

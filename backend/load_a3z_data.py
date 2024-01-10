@@ -3,7 +3,6 @@ import re
 import numpy as np
 import pandas as pd
 
-
 def returnMatchRegex(x):
     match = re.search(r"\d+:\d+", str(x))
     if match:
@@ -24,7 +23,8 @@ def convert_game_time(index, period, time):
 def read_a3z_game_data(file_data):
     df = pd.read_excel(io.BytesIO(file_data), dtype=str)
     df["Time"] = df["Time"].apply(returnMatchRegex)
-    df["Period"] = df["Period"].apply(lambda x: x if str(x).isdigit() else np.nan)
+    df["Period"] = df["Period"].apply(
+        lambda x: x if str(x).isdigit() else np.nan)
     df["Period"] = df["Period"].fillna(method="ffill")
     df = df[df["Period"].notna()]
     df = df[df["Time"].notna()]
@@ -43,7 +43,8 @@ def read_a3z_game_data(file_data):
 
 
 def clean_zone_entries(zone_entries):
-    zone_entries = zone_entries.dropna(subset=list(zone_entries.columns[3:]), how="all")
+    zone_entries = zone_entries.dropna(
+        subset=list(zone_entries.columns[3:]), how="all")
     zone_entries = zone_entries.drop(
         zone_entries[zone_entries["Entry Type"] == "X"].index
     )
@@ -51,7 +52,8 @@ def clean_zone_entries(zone_entries):
         lambda x: "".join(list(filter(str.isalpha, x)))
     )
     zone_entries["player"] = pd.to_numeric(
-        zone_entries["Entry By"].apply(lambda x: "".join(list(filter(str.isdigit, x)))),
+        zone_entries["Entry By"].apply(
+            lambda x: "".join(list(filter(str.isdigit, x)))),
         errors="coerce",
     )
     zone_entries["oppTeam"] = zone_entries["Defended by"].apply(
@@ -79,10 +81,11 @@ def clean_zone_entries(zone_entries):
     zone_entries["type"] = zone_entries[["Entry Type", "Pass?"]].apply(
         lambda x: entry_type[x["Entry Type"]]
         if not (entry_type[x["Entry Type"]] and x["Pass?"] == "Y")
-        else "CARRIED_WITH_PASS",
+        else "Carry Pass",
         axis=1,
     )
-    zone_entries.rename(columns={"Chance?": "chance", "Lane": "lane"}, inplace=True)
+    zone_entries.rename(
+        columns={"Chance?": "chance", "Lane": "lane"}, inplace=True)
     # CARRIED WITH PASS (where pass is Y)
     return zone_entries[
         [
@@ -103,7 +106,8 @@ def clean_zone_entries(zone_entries):
 
 # ZONE EXIT
 def clean_zone_exits(zone_exits):
-    zone_exits = zone_exits.dropna(subset=list(zone_exits.columns[3:]), how="all")
+    zone_exits = zone_exits.dropna(
+        subset=list(zone_exits.columns[3:]), how="all")
     zone_exits.fillna("N", inplace=True)
     zone_exits.head()
     zone_exits["team"] = zone_exits["Retrieval"].apply(
@@ -131,7 +135,8 @@ def clean_zone_exits(zone_exits):
         lambda x: "".join(list(filter(str.isalpha, x)))
     )
     zone_exits["oppPlayer"] = pd.to_numeric(
-        zone_exits["Pressure"].apply(lambda x: "".join(list(filter(str.isdigit, x)))),
+        zone_exits["Pressure"].apply(
+            lambda x: "".join(list(filter(str.isdigit, x)))),
         errors="coerce",
     )
     zone_exits["event"] = "Zone Exit"
@@ -149,7 +154,8 @@ def clean_zone_exits(zone_exits):
         lambda x: exit_types[x["Result"]]
         if x["Result"] != "EXC"
         else (
-            exit_types[x["Result.1"]] if x["Result.1"] != "N" else "Botched Retrieval"
+            exit_types[x["Result.1"]
+                       ] if x["Result.1"] != "N" else "Botched Retrieval"
         ),
         axis=1,
     )
@@ -219,40 +225,47 @@ def clean_shots(shots):
         .astype("str")
         .replace("-1", None)
     )
-    shots["event"] = shots[["SOG?", "G?"]].apply(
+    shots["event"] = 'Shot'
+    shots["result"] = shots[["SOG?", "G?"]].apply(
         lambda x: "Goal"
         if x["G?"] == "y"
-        else (("Shot" if x["SOG?"] == "y" else "Missed Shot")),
+        else (("On Goal" if x["SOG?"] == "y" else "Missed")),
         axis=1,
     )
     # Period Time Strength Event Type Team Number primaryAssist secondaryAssist tertiaryAssist Chance playType oddMan screened origin
     #             primaryZone primaryLane primaryPassType secondaryZone secondaryLane secondaryPassType tertiaryZone tertiaryLane tertiaryPassType
     shots["primaryZone"] = shots["A1 Zone"].apply(
-        lambda x: zones[str(x)[0]] if (str(x) != "nan") and (str(x)[0] in zones) else ""
+        lambda x: zones[str(x)[0]] if (
+            str(x) != "nan") and (str(x)[0] in zones) else ""
     )
     shots["primaryLane"] = shots["A1 Zone"].apply(
         lambda x: lanes[str(x)[-1]] if str(x)[-1] in lanes else ""
     )
     shots["primaryPassType"] = shots["A1 Zone"].apply(
-        lambda x: pass_types[str(x)[1:-1]] if str(x)[1:-1] in pass_types else ""
+        lambda x: pass_types[str(x)[1:-1]] if str(x)[1:-
+                                                     1] in pass_types else ""
     )
     shots["secondaryZone"] = shots["A2 Zone"].apply(
-        lambda x: zones[str(x)[0]] if (str(x) != "nan") and (str(x)[0] in zones) else ""
+        lambda x: zones[str(x)[0]] if (
+            str(x) != "nan") and (str(x)[0] in zones) else ""
     )
     shots["secondaryLane"] = shots["A2 Zone"].apply(
         lambda x: lanes[str(x)[-1]] if str(x)[-1] in lanes else ""
     )
     shots["secondaryPassType"] = shots["A2 Zone"].apply(
-        lambda x: pass_types[str(x)[1:-1]] if (str(x)[1:-1]) in pass_types else ""
+        lambda x: pass_types[str(x)[1:-1]] if (str(x)
+                                               [1:-1]) in pass_types else ""
     )
     shots["tertiaryZone"] = shots["A3 Zone"].apply(
-        lambda x: zones[str(x)[0]] if (str(x) != "nan") and (str(x)[0] in zones) else ""
+        lambda x: zones[str(x)[0]] if (
+            str(x) != "nan") and (str(x)[0] in zones) else ""
     )
     shots["tertiaryLane"] = shots["A3 Zone"].apply(
         lambda x: lanes[str(x)[-1]] if str(x)[-1] in lanes else ""
     )
     shots["tertiaryPassType"] = shots["A3 Zone"].apply(
-        lambda x: pass_types[str(x)[1:-1]] if str(x)[1:-1] in pass_types else ""
+        lambda x: pass_types[str(x)[1:-1]] if str(x)[1:-
+                                                     1] in pass_types else ""
     )
     shots.rename(
         columns={
@@ -267,7 +280,8 @@ def clean_shots(shots):
         inplace=True,
     )
     shots["type"] = shots["Shot Type"].apply(lambda x: shot_types[x.lower()])
-    shots["origin"] = shots["Origin"].apply(lambda x: zones[x] if x in zones else x)
+    shots["origin"] = shots["Origin"].apply(
+        lambda x: zones[x] if x in zones else x)
     shots["playType"] = shots["Rush?"].apply(
         lambda x: play_types[x] if x in play_types else x
     )
@@ -297,7 +311,8 @@ def clean_shots(shots):
         ]
     ]
 
-
+def get_int(num):
+    return -1 if pd.isnull(num) else int(num)
 def get_clean_a3z_game_data(file_data, players_dict, teams_dict):
     a3z_pbp = read_a3z_game_data(file_data)
     # Zone Entries
@@ -316,6 +331,7 @@ def get_clean_a3z_game_data(file_data, players_dict, teams_dict):
             clean_shots(shots),
         ]
     )
+    # print(a3z_final[~a3z_final['primaryAssist'].isna()].head(25))
     a3z_final = pd.merge(
         a3z_final,
         a3z_pbp[["period", "time", "seconds"]],
@@ -331,40 +347,40 @@ def get_clean_a3z_game_data(file_data, players_dict, teams_dict):
         axis=1,
     )
     a3z_final["oppPlayer"] = a3z_final[["oppPlayer", "oppTeam"]].apply(
-        lambda x: players_dict[(x["oppTeam"], x["oppPlayer"])]  # type: ignore
-        if (x["oppTeam"], x["oppPlayer"]) in players_dict
+        lambda x: players_dict[(x["oppTeam"], int(x["oppPlayer"]))]  # type: ignore
+        if (x["oppTeam"], get_int(x["oppPlayer"])) in players_dict
         else None,
         axis=1,
     )
     a3z_final["primaryAssist"] = a3z_final[["primaryAssist", "team"]].apply(
-        lambda x: players_dict[(x["team"], x["primaryAssist"])]  # type: ignore
-        if (x["team"], x["primaryAssist"]) in players_dict
+        lambda x: players_dict[(x["team"], int(x["primaryAssist"]))]  # type: ignore
+        if (x["team"], get_int(x["primaryAssist"])) in players_dict
         else None,
         axis=1,
     )
     a3z_final["secondaryAssist"] = a3z_final[["secondaryAssist", "oppTeam"]].apply(
         # type: ignore
-        lambda x: players_dict[(x["team"], x["secondaryAssist"])]
-        if (x["oppTeam"], x["secondaryAssist"]) in players_dict
+        lambda x: players_dict[(x["team"],int(x["secondaryAssist"]))]
+        if (x["oppTeam"], get_int(x["secondaryAssist"])) in players_dict
         else None,  # type: ignore
         axis=1,
     )
     a3z_final["tertiaryAssist"] = a3z_final[["tertiaryAssist", "team"]].apply(
         # type: ignore
-        lambda x: players_dict[(x["team"], x["tertiaryAssist"])]
-        if (x["team"], x["tertiaryAssist"]) in players_dict
+        lambda x: players_dict[(x["team"], int(x["tertiaryAssist"]))]
+        if (x["team"], get_int(x["tertiaryAssist"])) in players_dict
         else None,  # type: ignore
         axis=1,
     )
     a3z_final["recovery"] = a3z_final[["recovery", "team"]].apply(
-        lambda x: players_dict[(x["team"], x["recovery"])]  # type: ignore
-        if (x["team"], x["recovery"]) in players_dict
+        lambda x: players_dict[(x["team"], int(x["recovery"]))]  # type: ignore
+        if (x["team"], get_int(x["recovery"])) in players_dict
         else None,
         axis=1,
     )
     a3z_final["retrieval"] = a3z_final[["retrieval", "team"]].apply(
-        lambda x: players_dict[(x["team"], x["retrieval"])]  # type: ignore
-        if (x["team"], x["retrieval"]) in players_dict
+        lambda x: players_dict[(x["team"], int(x["retrieval"]))]  # type: ignore
+        if (x["team"], get_int(x["retrieval"])) in players_dict
         else None,
         axis=1,
     )
